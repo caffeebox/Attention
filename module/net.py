@@ -287,7 +287,7 @@ class SegNet(nn.Module):
 
 class UNet(nn.Module):
     '''y just for the same parameter with SegNet'''
-    def __init__(self, in_ch=1, out_ch=1, C=32):
+    def __init__(self, in_ch=2, out_ch=1, C=32):
         super(UNet, self).__init__()
         self.inc = DoubleConv(in_ch, C)
         self.down1 = down(C, C*2, p=True)
@@ -299,7 +299,7 @@ class UNet(nn.Module):
         self.outc = nn.Conv2d(C, out_ch, 1)
 
     def forward(self, x, y):
-        # x = torch.cat((x, y), dim=1)
+        x = torch.cat((x, y), dim=1)
         x1 = self.inc(x)
         x2 = self.down1(x1)
         x3 = self.down2(x2)
