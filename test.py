@@ -65,4 +65,4 @@ if __name__ == '__main__':
     #     total_dice.append(test(i, validate=False))
     #     x = torch.arange(len(total_dice)) + 1
     #     viz.line(X=x, Y=total_dice, win='dice', opts=dict(title='dice'))
-    test(0, validate=True, inteval=(8,9))
+    test(0, validate=False, inteval=(1, 10))

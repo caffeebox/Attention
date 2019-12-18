@@ -4,7 +4,7 @@ import argparse
 def opts_init():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--path_train', type=str, default='/ckh/Projects/Attention/data/brats/HGG/')
+    parser.add_argument('--path_train', type=str, default='/home/y182202001/Projects/Attention/data/brats/HGG/')
     # parser.add_argument('--path_train', type=str, default='/home/y182202099/Project/Attention/data/prostate/')
     parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--data_size', type=int, default=0, help='load data number, 0 means total')
@@ -19,7 +19,7 @@ def opts_init():
     parser.add_argument('--focal_alpha', type=float, default=0.25, help='focal loss, positive sample weight')
     parser.add_argument('--focal_gamma', type=float, default=2, help='focal loss, seg difficult weight')
 
-    parser.add_argument('--server', type=str, default='http://172.21.228.126', help='visdom server')
+    parser.add_argument('--server', type=str, default='http://172.21.228.120', help='visdom server')
     parser.add_argument('--port', type=int, default=8087, help='visdom port')
     parser.add_argument('--env', type=str, default='slice2_PAM_orimg', help='visdom env')
 
