@@ -34,15 +34,16 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     trainloader = DataLoader(trainset, batch_size=opts.batch_size, shuffle=False, num_workers=4)
 
     # net = SegNet()
-    # net = UNet()
-    net = CoUNet()
+    net = UNet()
+    # net = CoUNet()
     net.cuda()
     net.load_state_dict(torch.load(path_param))
 
     dice_total = []
     for i, (CT, MR, GT) in enumerate(trainloader):
         CT, MR, GT = CT.cuda(), MR.cuda(), GT.cuda()
-        feature, _ = net(CT, MR)
+        # feature, _ = net(CT, MR)
+        feature = net(CT, MR)
         result = torch.where(feature>=0.5, torch.tensor(1.0, device='cuda'), torch.tensor(0.0, device='cuda'))
         imgs = torch.cat((CT, result, GT), dim=0)
         if (i+1) in range(inteval[0], inteval[1]+1):
@@ -60,9 +61,12 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     return np.mean(dice_total)
 
 if __name__ == '__main__':
+    # test(0, validate=False, inteval=(8, 8))
+
     # total_dice = []
     # for i in range(1, 30):
     #     total_dice.append(test(i, validate=False))
     #     x = torch.arange(len(total_dice)) + 1
     #     viz.line(X=x, Y=total_dice, win='dice', opts=dict(title='dice'))
-    test(0, validate=False, inteval=(1, 10))
+
+    test(0, validate=False, inteval=(8, 12))
