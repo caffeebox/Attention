@@ -14,11 +14,12 @@ from matplotlib import pyplot as plt
 
 opts = opts_init()
 class BraTS(Dataset):
-    ''' len=13357(slice, hgg) no norm, aug, crop to 160
+    ''' len=13357(slice, hgg) 11275(slice2, hgg)
+    no norm, aug, crop to 160
     original flair and t1: (240, 240, C), float64[0, 7779]
     original seg: (240, 240, C), float64[0, 1, 2, 4]
     '''
-    def __init__(self, root=None, length=0, model='slice', val=False):
+    def __init__(self, root=None, length=0, model='slice2', val=False):
         self.root = root
         self.model = model
         self.val = val
@@ -122,6 +123,8 @@ def slice2():
     mod = ['flair2', 't12', 'seg2']
     files.sort()
     for dir in files:
+        if os.path.isfile(root+dir):
+            continue
         print(dir)
         rt = root + dir + '/'
         path_seg = rt + dir + '_' + 'seg' + '.nii.gz'
@@ -139,7 +142,7 @@ def slice2():
         imgs_t1 = im_t1.get_fdata()
         j = 0
         for i in range(imgs_seg.shape[2]):
-            if len(np.nonzero(imgs_seg[:, :, i])[0]) > 200:
+            if len(np.nonzero(imgs_seg[:, :, i])[0]) > opts.nonzero:
                 j = j + 1
                 path_array = rt + 'seg2' + '/' + str(j) + '.npy'
                 np.save(path_array, imgs_seg[:, :, i])
@@ -151,15 +154,18 @@ def slice2():
                 np.save(path_array, imgs_t1[:, :, i])
 
 
-def slice_indexs(root='/home/y182202001/Projects/Attention/data/brats/HGG/'):
+def slice_indexs():
     '''Create json index to load data, return {'flair':[path, ...], 't1', 'seg'}'''
-    path_save = root + 'train2.json'
+    root = opts.path_train
+    path_save = root + 'slice2.json'
     indexs = dict(flair=[], t1=[], seg=[])
     for k in indexs.keys():
         i = 0
         P = os.listdir(root)
         P.sort()
         for dir in P:
+            if os.path.isfile(root+dir):
+                continue
             dir2 = dir + '/' + k + '2/'
             tifs = os.listdir(root+dir2)
             tifs.sort(key=lambda x: int(x[:-4]))
@@ -172,17 +178,11 @@ def slice_indexs(root='/home/y182202001/Projects/Attention/data/brats/HGG/'):
 
 if __name__ == '__main__':
     # slice2()
-    slice_indexs()
-    # path = '/ckh/Projects/Attention/data/brats/HGG/train.json'
-    # with open(path, 'r') as f:
-    #     indexs = json.loads(f.read())
-    #     for k, v in indexs.items():
-    #         print(v[:77])
-    #         break
+    # slice_indexs()
     # indexs_generate()
     # viz = visdom.Visdom(server='223.2.17.239', port=8087, env='attention-BraTS')
-    # dataset = BraTS('/home/y182202001/Projects/Attention/data/brats/HGG/', length=0, model='slice', val=True)
-    # print(len(dataset))
+    dataset = BraTS(root=opts.path_train, length=opts.data_size, model=opts.data_mode, val=False)
+    print(len(dataset))
     # dataloader = DataLoader(dataset, batch_size=8, shuffle=False, num_workers=8)
     # for i, (flair, t1, seg) in enumerate(dataloader):
     #     if i==3:
