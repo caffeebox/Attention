@@ -43,9 +43,9 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     for i, (CT, MR, GT) in enumerate(trainloader):
         CT, MR, GT = CT.cuda(), MR.cuda(), GT.cuda()
         # feature, _ = net(CT, MR)
-        feature = net(CT, MR)
+        feature = net(MR, CT)
         result = torch.where(feature>=0.5, torch.tensor(1.0, device='cuda'), torch.tensor(0.0, device='cuda'))
-        imgs = torch.cat((CT, result, GT), dim=0)
+        imgs = torch.cat((MR, result, GT), dim=0)
         if (i+1) in range(inteval[0], inteval[1]+1):
             temp_title = opts.env + '_' + str(i+1)
             vzimages(viz, imgs, nrow=opts.batch_size, title=temp_title)
@@ -61,12 +61,13 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     return np.mean(dice_total)
 
 if __name__ == '__main__':
-    # test(0, validate=False, inteval=(8, 8))
+    test(0, validate=False, inteval=(8, 8))
+    test(0, validate=True, inteval=(8, 8))
 
     # total_dice = []
-    # for i in range(1, 30):
+    # for i in range(1, 20):
     #     total_dice.append(test(i, validate=False))
     #     x = torch.arange(len(total_dice)) + 1
     #     viz.line(X=x, Y=total_dice, win='dice', opts=dict(title='dice'))
 
-    test(0, validate=False, inteval=(8, 12))
+    # test(0, validate=False, inteval=(7, 12))
