@@ -21,13 +21,13 @@ def opts_init():
 
     parser.add_argument('--server', type=str, default='http://172.21.228.120', help='visdom server')
     parser.add_argument('--port', type=int, default=8087, help='visdom port')
-    parser.add_argument('--env', type=str, default='slice2_PAM_v1', help='visdom env')
+    parser.add_argument('--env', type=str, default='slice2_CAM_v1', help='visdom env')
 
     parser.add_argument('--param_step', type=int, default=5, help='net param save step')
     parser.add_argument('--image_step', type=int, default=5, help='image show in visdom step')
     parser.add_argument('-r', '--remark', type=str, default='', help='test file extra information')
 
-    parser.add_argument('--points', type=int, default=256, help='number of local PAM sampling points')
+    parser.add_argument('--points', type=int, default=100, help='number of local PAM sampling points')
     parser.add_argument('--cudaid', type=str, default='2', help='gpu number')
 
     opts = parser.parse_args()

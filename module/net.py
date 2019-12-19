@@ -3,9 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from module.options import opts_init
-from module.utils import stats_sample
 
 opts = opts_init()
+
 
 class DoubleConv(nn.Module):
     def __init__(self, in_ch, out_ch):
@@ -325,14 +325,14 @@ class ChannelAttentionModule(nn.Module):
         x2_d = x2.view(n, c2, h*w)
         x1_f = F.normalize(x1_d, p=2, dim=2)
         x2_f = F.normalize(x2_d, p=2, dim=2)
-        attention = x1_f.bmm(x2_f.permute(0, 2, 1))  # c1*c2
+        attention = x1_f.bmm(x2_f.permute(0, 2, 1))  # n*c1*c2
 
         attention_x1 = self.softmax(attention)
-        fake_x1 = attention_x1.bmm(x2_d).view(n, -1, h, w)  # c1*(h*w)
-        attention_x2 = self.softmax(attention.permute(0, 2, 1))   # C2*c1
-        fake_x2 = attention_x2.bmm(x1_d).view(n, -1, h, w)  # c2*(h*w)
-        x1_out = self.alpha * fake_x2 + x1
-        x2_out = self.beta * fake_x1 + x2
+        fake_x1 = attention_x1.bmm(x2_d).view(n, -1, h, w)  # n*c1*(h*w)
+        attention_x2 = self.softmax(attention.permute(0, 2, 1))   # n*C2*c1
+        fake_x2 = attention_x2.bmm(x1_d).view(n, -1, h, w)  # n*c2*(h*w)
+        x1_out = self.alpha * fake_x1 + x1
+        x2_out = self.beta * fake_x2 + x2
         return x1_out, x2_out
 
 
@@ -387,19 +387,39 @@ class PositionAttentionModule2(nn.Module):
         return x_out
 
 
+def stats_sample(n, h, w, symbol=0):
+    if symbol==0:
+        x = torch.normal(mean=w/2, std=w/4, size=(opts.points, )).clamp(0, w-1)
+        y = torch.normal(mean=h/2, std=h/4, size=(opts.points, )).clamp(0, h-1)
+        SF = torch.stack((x, y), dim=0).permute(1, 0).expand(n, opts.points, 2)  # n*p*2
+        SFL = SF.long()
+    return SFL
+
 
 class PositionAttentionModule3(nn.Module):
-    def __init__(self):
+    def __init__(self, *in_ch):
         super(PositionAttentionModule3, self).__init__()
         self.alpha = nn.Parameter(torch.zeros(1))
         self.pad = nn.ReflectionPad2d(2)
         self.softmax = nn.Softmax(dim=-1)
+        # self.con_b = nn.Conv2d(in_ch, in_ch, 1)
+        # self.con_c = nn.Conv2d(in_ch, in_ch, 1)
 
-    def forward(self, x1, x2):
+    def forward(self, x1, x2, *S):
         n, c, h1, w1 = x1.size()
         n, c, h2, w2 = x2.size()
-        SFL = stats_sample(n, h1, w1, points=opts.points, symbol=1)
 
+        # SF = S.view(-1, 2)   # (p*n)*2
+        # SF = S  # n*p*2
+
+        # SF[:, :, 0] = SF[:, :, 0] * (h-1)
+        # SF[:, :, 1] = SF[:, :, 1] * (w-1)
+        # SFL = SF.long()
+
+        SFL = stats_sample(n, h1, w1, symbol=0)
+
+        # pxc = self.con_c(x)
+        # pxb = self.con_b(x)
         px2 = self.pad(x2)
         xf = x1.permute(0, 2, 3, 1)  # n*h*w*c
         for l in range(n):
@@ -458,10 +478,11 @@ class CoUNet(nn.Module):
         self.yup2 = up(C*2, C, cat=True)
         self.yup3 = up(C, C, cat=True)
         # self.ydown4 = down(C*4, C*16, p=True)
-        self.fea_con = DoubleConv(C*8, C*4)
-        # self.cam = ChannelAttentionModule()
-        self.pam = PositionAttentionModule3()
-        self.out1 = DoubleConv(C, C)
+        # self.fea_con = DoubleConv(C*8, C*4)
+        self.cam = ChannelAttentionModule()
+        # self.pamx = PositionAttentionModule3(C)
+        # self.pamy = PositionAttentionModule3(C)
+        self.out1 = DoubleConv(C*2, C)
         self.out2 = nn.Conv2d(C, out_ch, 1)
 
 
@@ -474,17 +495,18 @@ class CoUNet(nn.Module):
         y2 = self.ydown1(y1)
         y3 = self.ydown2(y2)
         y4 = self.ydown3(y3)
-        # x, y = self.cam(x4, y4)
-        fusion = torch.cat((x4, y4), dim=1)
-        fusion = self.fea_con(fusion)
-        x = self.xup1(fusion, x3)
+        fusion_x, fusion_y = self.cam(x4, y4)
+        # fusion = torch.cat((x4, y4), dim=1)
+        # fusion = self.fea_con(fusion)
+        x = self.xup1(fusion_x, x3)
         x = self.xup2(x, x2)
         x = self.xup3(x, x1)
-        y = self.yup1(fusion, y3)
+        y = self.yup1(fusion_y, y3)
         y = self.yup2(y, y2)
         y = self.yup3(y, y1)
-        # out = torch.cat((x, y), dim=1)
-        out, SFL = self.pam(x, y)
+        # x, xSFL = self.pamx(x, y1)
+        # y, ySFL = self.pamy(y, x1)
+        out = torch.cat((x, y), dim=1)
         out = self.out1(out)
         out = self.out2(out)
-        return nn.Sigmoid()(out), SFL
+        return nn.Sigmoid()(out)
