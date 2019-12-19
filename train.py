@@ -28,8 +28,8 @@ trainloader = DataLoader(trainset, batch_size=opts.batch_size, shuffle=False, nu
 loss_iter = len(trainset) // (20 * opts.batch_size)   # one epoch 20 loss point
 
 # net = SegNet()
-net = UNet()
-# net = CoUNet()
+# net = UNet()
+net = CoUNet()
 net.cuda()
 
 criterion = nn.BCELoss()

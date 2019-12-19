@@ -34,8 +34,8 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     trainloader = DataLoader(trainset, batch_size=opts.batch_size, shuffle=False, num_workers=4)
 
     # net = SegNet()
-    net = UNet()
-    # net = CoUNet()
+    # net = UNet()
+    net = CoUNet()
     net.cuda()
     net.load_state_dict(torch.load(path_param))
 
@@ -64,9 +64,9 @@ if __name__ == '__main__':
     # test(0, validate=False, inteval=(8, 8))
     # test(0, validate=True, inteval=(8, 8))
 
-    # total_dice = []
-    # for i in range(1, 20):
-    #     total_dice.append(test(i, validate=False))
-    #     x = torch.arange(len(total_dice)) + 1
-    #     viz.line(X=x, Y=total_dice, win='dice', opts=dict(title='dice'))
+    total_dice = []
+    for i in range(1, 20):
+        total_dice.append(test(i, validate=False))
+        x = torch.arange(len(total_dice)) + 1
+        viz.line(X=x, Y=total_dice, win='dice', opts=dict(title='dice'))
     test(0, validate=False, inteval=(7, 12))
