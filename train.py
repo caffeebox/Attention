@@ -47,8 +47,8 @@ for epoch in range(opts.EPOCH):
     loss_epoch = []
     for i, (CT, MR, GT) in enumerate(trainloader):
         CT, MR, GT = CT.cuda(), MR.cuda(), GT.cuda()
-        # feature, SFL = net(CT, MR)
-        feature = net(CT, MR)
+        feature, SFL = net(CT, MR)
+        # feature = net(CT, MR)
         loss = criterion(feature, GT)
         optimizer.zero_grad()
         loss.backward()
@@ -68,14 +68,14 @@ for epoch in range(opts.EPOCH):
             for i, (CT, MR, GT) in enumerate(trainloader):
                 if i==7:
                     CT, MR, GT = CT.cuda(), MR.cuda(), GT.cuda()
-                    # feature, SFL = net(CT, MR)
-                    feature = net(CT, MR)
+                    feature, SFL = net(CT, MR)
+                    # feature = net(CT, MR)
                     imgs = torch.cat((CT, feature, GT), dim=0)
                     title = 'image_' + str(epoch+1)
                     vzimages(viz, imgs, nrow=opts.batch_size, title=title)
-                    # path = 'result/' + opts.env + '/' + str(epoch + 1) + '.png'
-                    # CT, GT, SFL = CT.cpu(), GT.cpu(), SFL.cpu()
-                    # pltimg(CT, GT, SFL, path)
+                    path = 'result/' + opts.env + '/' + str(epoch + 1) + '.png'
+                    CT, GT, SFL = CT.cpu(), GT.cpu(), SFL.cpu()
+                    pltimg(CT, GT, SFL, path)
                     break
     if (epoch+1) % opts.param_step == 0:
         path = 'result/' + opts.env + '/' + str(epoch+1) + '.pkl'

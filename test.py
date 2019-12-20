@@ -42,8 +42,8 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     dice_total = []
     for i, (CT, MR, GT) in enumerate(trainloader):
         CT, MR, GT = CT.cuda(), MR.cuda(), GT.cuda()
-        # feature, _ = net(CT, MR)
-        feature = net(CT, MR)
+        feature, _ = net(CT, MR)
+        # feature = net(CT, MR)
         result = torch.where(feature>=0.5, torch.tensor(1.0, device='cuda'), torch.tensor(0.0, device='cuda'))
         imgs = torch.cat((CT, result, GT), dim=0)
         if (i+1) in range(inteval[0], inteval[1]+1):
@@ -61,8 +61,8 @@ def test(num_bs, validate=True, inteval=(-2, -1)):
     return np.mean(dice_total)
 
 if __name__ == '__main__':
-    # test(0, validate=False, inteval=(8, 8))
-    # test(0, validate=True, inteval=(8, 8))
+    test(0, validate=False, inteval=(8, 8))
+    test(0, validate=True, inteval=(8, 8))
 
     total_dice = []
     for i in range(1, 20):

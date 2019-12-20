@@ -1,19 +1,28 @@
-import nibabel as nib
-import visdom
+# import nibabel as nib
+from matplotlib import pyplot as plt
+# import visdom
 import numpy as np
 import torch
-from module import utils
+from torch.distributions.multivariate_normal import MultivariateNormal
+from torch.distributions.uniform import Uniform
 
 
-viz = visdom.Visdom(port=8087)
-path = '/home/y182202001/Projects/Attention/data/brats/HGG/Brats18_2013_2_1/Brats18_2013_2_1_seg.nii.gz'
-img = nib.load(path).get_fdata()
+# viz = visdom.Visdom(port=8087)
+# path = '/home/y182202001/Projects/Attention/data/brats/HGG/Brats18_2013_2_1/flair2/25.npy'
+# img = np.load(path)
+# h, w = img.shape
+# mean = torch.tensor([w/2, h/2])
+# covariance = torch.tensor([[4*w, 0], [0, 4*h]], dtype=torch.float32)
+# m = MultivariateNormal(mean, covariance)
+# cordi = [m.sample() for i in range(256)]
+# cordi = torch.stack(cordi, dim=0).numpy()
+# plt.figure()
+# plt.xlim(0, w)
+# plt.ylim(0, h)
+# plt.imshow(img, cmap=plt.cm.gray)
+# plt.scatter(cordi[:, 0], cordi[:, 1], s=1, c='r')
+# plt.show()
 
-index = [len(np.nonzero(img[:, :, i])[0])>200 for i in range(img.shape[2])]
-# index = np.sum(img, axis=(0, 1)) != 0
-npimg = img[:, :, index]
-
-img = torch.from_numpy(npimg).permute(2, 0, 1).unsqueeze(1)
-utils.vzimages(viz, img, nrow=8, title='nonzero')
-
-
+m = Uniform(torch.tensor([0.0, 0.0]), torch.tensor([10.0, 10.0]))
+h = [m.sample() for i in range(10)]
+print(h)
